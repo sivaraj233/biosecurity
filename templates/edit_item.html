@@ -9,13 +9,19 @@
       <!-- /.card-header -->
       <div class="card-body">
         <!-- Main content -->
-        <form id="agricultureForm" action="/add_item" method="post" enctype="multipart/form-data">
+
+        <form
+          id="agricultureForm"
+          action="/update_item"
+          method="post"
+          enctype="multipart/form-data"
+        >
           <section class="content">
             <div class="row">
               <div class="col-md-6">
                 <div class="card card-primary">
                   <div class="card-header">
-                    <h3 class="card-title">Agriculture Item Add</h3>
+                    <h3 class="card-title">Agriculture Item Edit</h3>
 
                     <div class="card-tools">
                       <button
@@ -36,9 +42,9 @@
                         class="form-control custom-select"
                         name="arg_item"
                       >
-                        <option selected disabled>Select one</option>
-                        <option value="1">Pest</option>
-                        <option value="2">Weed</option>
+                        <option >Select one</option>
+                        <option value="1" {% if item_list.agriculture_type == 1 %}selected{% endif %}>Pest</option>
+                        <option value="2"  {% if item_list.agriculture_type == 2 %}selected{% endif %}>Weed</option>
                       </select>
                     </div>
                     <div class="form-group">
@@ -48,6 +54,7 @@
                         id="common_name"
                         name="common_name"
                         class="form-control"
+                        value="{{item_list.common_name}}"
                       />
                     </div>
                     <div class="form-group">
@@ -57,6 +64,7 @@
                         id="science_name"
                         name="science_name"
                         class="form-control"
+                        value="{{item_list.science_name}}"
                       />
                     </div>
                     <div class="form-group">
@@ -66,7 +74,9 @@
                         name="key_char"
                         class="form-control"
                         rows="4"
-                      ></textarea>
+                      >{{item_list.key_char.decode('utf-8').lstrip('b')}}
+                    </textarea
+                      >
                     </div>
 
                     <div class="form-group">
@@ -76,7 +86,8 @@
                         name="biology"
                         class="form-control"
                         rows="4"
-                      ></textarea>
+                      > {{item_list.biology.decode('utf-8').lstrip('b')}}</textarea
+                      >
                     </div>
                     <div class="form-group">
                       <label for="inputProjectLeader">impacts</label>
@@ -85,7 +96,8 @@
                         name="impacts"
                         class="form-control"
                         rows="4"
-                      ></textarea>
+                      >{{item_list.impacts.decode('utf-8').lstrip('b')}}</textarea
+                      >
                     </div>
                     <div class="form-group">
                       <label for="controls">Controls</label>
@@ -94,7 +106,8 @@
                         name="controls"
                         class="form-control"
                         rows="4"
-                      ></textarea>
+                      >{{item_list.controls.decode('utf-8').lstrip('b')}}</textarea
+                      >
                     </div>
                     <div class="form-group">
                       <label for="controls">Information</label>
@@ -103,7 +116,8 @@
                         name="information"
                         class="form-control"
                         rows="4"
-                      ></textarea>
+                      >{{item_list.information.decode('utf-8').lstrip('b')}}</textarea
+                      >
                     </div>
                   </div>
                   <!-- /.card-body -->
@@ -125,6 +139,7 @@
                             accept="image/*"
                             multiple
                             name="files"
+                            onchange="displayImagePreviews(this)"
                           />
                           <label
                             class="custom-file-label"
@@ -152,7 +167,14 @@
                       <div
                         class="timeline-body"
                         id="imagePreviewContainer"
-                      ></div>
+                      >
+                      {% for  item in image_list %}
+                        <img  src="data:image/png;base64,{{ item.img_url.decode('utf-8').lstrip('b') }}" height="300px", width="300px" />
+                        <input type="radio" name="primaryImage" id="primaryImage{{ loop.index }}" value="{{item.img_id}}" {% if item.is_primary == 1 %}checked{% endif %} onchange="updateSelectedPrimaryImage(this.value)"/>
+                      {% endfor %}
+                    </div>
+                    <input type="hidden" id="selectedPrimaryImage" name="selectedPrimaryImage" value="0">
+                    <input type="hidden" id="arg_id" name="arg_id" value="{{ item_list.agriculture_id }}">
                     </div>
                   </div>
                   <!-- /.card-body -->
@@ -165,7 +187,7 @@
                 <a href="#" class="btn btn-secondary">Cancel</a>
                 <input
                   type="submit"
-                  value="Submit"
+                  value="Update"
                   class="btn btn-success float-right"
                 />
               </div>
@@ -176,29 +198,39 @@
       </div>
     </div>
     <script>
-      document
-        .getElementById("imageInput")
-        .addEventListener("change", function () {
-          displayImagePreviews(this);
-        });
-      function displayImagePreviews(input) {
-        var container = document.getElementById("imagePreviewContainer");
-        container.innerHTML = "";
-        for (var i = 0; i < input.files.length; i++) {
-          var file = input.files[i];
-          var reader = new FileReader();
+          function updateSelectedPrimaryImage(value) {
+              document.getElementById("selectedPrimaryImage").value = value;
+          }
+      // function displayImagePreviews(input) {
+      //   var container = document.getElementById("imagePreviewContainer");
+      //   for (var i = 0; i < input.files.length; i++) {
+      //     var file = input.files[i];
+      //     var reader = new FileReader();
 
-          reader.onload = function (e) {
-            var preview = document.createElement("img");
-            preview.src = e.target.result;
-            preview.style.maxWidth = "300px";
-            preview.style.maxHeight = "300px";
-            container.appendChild(preview);
-          };
+      //     reader.onload = function (e) {
+      //       var preview = document.createElement("img");
+      //       preview.src = e.target.result;
+      //       preview.style.maxWidth = "300px";
+      //       preview.style.maxHeight = "300px";
+      //       container.appendChild(preview);
 
-          reader.readAsDataURL(file);
-        }
-      }
+      //       var radioBtn = document.createElement("input");
+      //       radioBtn.type = "radio";
+      //       radioBtn.style.marginRight = "20px";
+      //       radioBtn.style.marginLeft = "20px";
+      //       radioBtn.id = "primaryImage" + i;
+      //       radioBtn.name = "primaryImage";
+      //       radioBtn.value = i;
+      //       radioBtn.checked = i === 0; // Set the first image as default primary
+      //       radioBtn.addEventListener("change", function () {
+      //           updateSelectedPrimaryImage(this.value);
+      //       });
+      //       container.appendChild(radioBtn);
+      //     };
+
+      //     reader.readAsDataURL(file);
+      //   }
+      // }
 
       $(document).ready(function () {
         var successModalValue = "{{ success_modal }}";

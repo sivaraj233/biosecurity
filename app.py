@@ -330,6 +330,7 @@ def weed_details():
 # Staff item 
 @app.route("/add_item", methods=['post'])
 def add_item():
+    menu_list= generate_menu()
     try:
         arg_item =request.form.get('arg_item')
         common_name =request.form.get('common_name')
@@ -340,6 +341,7 @@ def add_item():
         controls =request.form.get('controls')
         information =request.form.get('information')
         files = request.files.getlist('files')
+        selectedPrimaryImage = request.form.get('selectedPrimaryImage')
         cur = mysql.connection.cursor()
         cur.execute('''INSERT INTO agriculture_item 
                     (agriculture_type, common_name, science_name, key_char, biology, impacts, controls, information) 
@@ -350,15 +352,17 @@ def add_item():
         cur.execute('SELECT LAST_INSERT_ID()')
         last_inserted_id = cur.fetchone()[0]
         for index, file in enumerate(files):
-            is_primary = 1 if index == 1 else 0
+            print(index,selectedPrimaryImage )
+            is_primary = 1 if index == int(selectedPrimaryImage) else 0
+
             file_data = base64.b64encode(file.read())
             cur.execute('''INSERT INTO img_table (img_url, is_primary, arg_id) VALUES (%s, %s, %s)''',
                         (file_data, is_primary, last_inserted_id))
             mysql.connection.commit()
         cur.close()
-        successModalLabel = "Already Exist"
-        successModalSubLabel = "Part Already Exist"
-        return  redirect(url_for('add_agriculture'))
+        successModalLabel = "Item Added"
+        successModalSubLabel = "Item Added Sucessfully"
+        return render_template('add_agriculture.html',menu_list=menu_list,  success_modal=True, successModalLabel =successModalLabel, successModalSubLabel=successModalSubLabel)
 
     except Exception as e:
         # Handle exceptions
@@ -434,7 +438,7 @@ def update_staff():
     columns = [column[0] for column in cur.description]
     customer_list = [dict(zip(columns, row)) for row in cur.fetchall()]
     successModalLabel = "User Updated"
-    successModalSubLabel = "Agronosmist Updated Sucessfully"
+    successModalSubLabel = "User Updated Sucessfully"
     return render_template('staff_list.html', menu_list=menu_list, staff_list = customer_list, success_modal=True, successModalLabel =successModalLabel, successModalSubLabel=successModalSubLabel)
 
 @app.route("/add_staff")
@@ -486,14 +490,61 @@ def edit_item(id):
     menu_list= generate_menu()
     try:
         cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM agriculture WHERE agriculture_id= %s ", (id))
+        cur.execute("SELECT * FROM agriculture_item WHERE agriculture_id= %s", (id,))
         columns = [column[0] for column in cur.description]
-        customer_list = [dict(zip(columns, row)) for row in cur.fetchall()]
-        return render_template('edit_item.html', menu_list=menu_list, staff_list = customer_list)
-    except Exception as ex:
-        return render_template('edit_item.html', menu_list=menu_list)
+        item_row = cur.fetchone()
+        customer_list = dict(zip(columns, item_row )) 
+        cur.execute('''SELECT *
+            FROM img_table 
+            WHERE arg_id= %s ORDER BY is_primary DESC''', (id,))
+        columns = [column[0] for column in cur.description]
+        image_list = [dict(zip(columns, row)) for row in cur.fetchall()]
+        return render_template('edit_item.html', menu_list=menu_list, item_list = customer_list, image_list=image_list)
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        return jsonify({"error": "Failed to add complete"}), 500
+
+@app.route("/update_item", methods=['post'])
+@login_required
+def update_item():
+    menu_list= generate_menu()
+    try:
+        arg_item =request.form.get('arg_item')
+        arg_id =request.form.get('arg_id')
+        common_name =request.form.get('common_name')
+        science_name =request.form.get('science_name')
+        key_char =request.form.get('key_char')
+        biology =request.form.get('biology')
+        impacts =request.form.get('impacts')
+        controls =request.form.get('controls')
+        information =request.form.get('information')
+        selectedPrimaryImage = request.form.get('selectedPrimaryImage')
+        cur = mysql.connection.cursor()
+
+        cur.execute('''update agriculture_item  set agriculture_type=%s,common_name=%s, science_name=%s,  key_char=%s, biology=%s,
+                    impacts= %s, controls=%s, information=%s where agriculture_id =%s ''', 
+                    (arg_item, common_name, science_name,key_char,biology,impacts,controls,information,arg_id)
+                    )
+        mysql.connection.commit()
+        cur.execute('''SELECT img_id FROM img_table WHERE arg_id = %s AND is_primary = 1''', (arg_id,))
+        result = cur.fetchone()
+        cur.execute('''UPDATE img_table set is_primary=0 where img_id=%s''',
+                    (result[0],))
+        mysql.connection.commit()
+        cur.execute('''UPDATE img_table set is_primary=1 where arg_id = %s and img_id=%s''',
+                    (arg_id, selectedPrimaryImage))
+        mysql.connection.commit()
+
+        cur.close()
+        successModalLabel = "Update Item"
+        successModalSubLabel = "Item Updated Sucessfully"
+        return render_template('add_agriculture.html',menu_list=menu_list,  success_modal=True, successModalLabel =successModalLabel, successModalSubLabel=successModalSubLabel)
 
 
+    except Exception as e:
+        # Handle exceptions
+        print(f"An error occurred: {str(e)}")
+        return jsonify({"error": "An error occurred during the search."})
 
 @app.route("/staff_add", methods=['post'])
 def staff_add():

@@ -3,9 +3,17 @@
 <div class="hold-transition register-page">
   <div class="register-box">
     <div class="card card-outline card-primary">
-      <div class="card-header text-center">
-        <a herf="" class="h1"><b>Bio</b>Security</a>
-      </div>
+      <a href="{{ url_for('index') }}">
+        <div class="card-header text-center">
+          <img
+            class="animation__shake"
+            src="{{ url_for('static', filename='images/aglogo.png') }}"
+            alt="AdminLTELogo"
+            height="60"
+            width="150"
+          />
+        </div>
+      </a>
       <div class="card-body">
         <p class="login-box-msg">Register a new Agronomist</p>
 
@@ -45,7 +53,8 @@
               class="form-control"
               placeholder="Phone number"
               name="phone_number"
-              
+              pattern="^\d{10}$"
+              required
             />
             <div class="input-group-append">
               <div class="input-group-text">
@@ -88,16 +97,36 @@
                 <span class="fas fa-lock"></span>
               </div>
             </div>
-            
           </div>
           <div class="input-group mb-3">
-            <p id="password-pattern">Password should contain at least:
-              <br><i class="fa fa-times" aria-hidden="true" id="symbol"></i> One symbol (e.g., !, @, #)
-              <br><i class="fa fa-times" aria-hidden="true" id="uppercase"></i> One uppercase letter
-              <br><i class="fa fa-times" aria-hidden="true" id="lowercase"></i> One lowercase letter
-              <br><i class="fa fa-times" aria-hidden="true" id="numnercase"></i> One number
-              <br><i class="fa fa-times" aria-hidden="true" id="minchar"></i> Minimum length of 8 characters
-          </p>
+            <p id="password-pattern">
+              Password should contain at least: <br /><i
+                class="fa fa-times"
+                aria-hidden="true"
+                id="symbol"
+              ></i>
+              One symbol (e.g., !, @, #) <br /><i
+                class="fa fa-times"
+                aria-hidden="true"
+                id="uppercase"
+              ></i>
+              One uppercase letter <br /><i
+                class="fa fa-times"
+                aria-hidden="true"
+                id="lowercase"
+              ></i>
+              One lowercase letter <br /><i
+                class="fa fa-times"
+                aria-hidden="true"
+                id="numnercase"
+              ></i>
+              One number <br /><i
+                class="fa fa-times"
+                aria-hidden="true"
+                id="minchar"
+              ></i>
+              Minimum length of 8 characters
+            </p>
           </div>
 
           <div class="input-group mb-3">
@@ -162,21 +191,29 @@
     var registerButton = document.getElementById("registerButton");
     registerButton.disabled = !this.checked;
   });
-  document
-    .getElementById("password")
-    .addEventListener("input", function () {
-      var password = document.getElementById("password").value;
-      var hasUpperCase = /[A-Z]/.test(password);
-      var hasLowerCase = /[a-z]/.test(password);
-      var hasSymbol = /[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/.test(password);
-      var hasNumber = /\d/.test(password);
-      var isLengthValid = password.length >= 8;
-      document.getElementById('symbol').className = hasSymbol ? 'fa fa-check' : 'fa fa-times';
-      document.getElementById('uppercase').className = hasUpperCase ? 'fa fa-check' : 'fa fa-times';
-      document.getElementById('lowercase').className = hasLowerCase ? 'fa fa-check' : 'fa fa-times';
-      document.getElementById('numnercase').className = hasNumber ? 'fa fa-check' : 'fa fa-times';
-      document.getElementById('minchar').className = isLengthValid ? 'fa fa-check' : 'fa fa-times';
-    })
+  document.getElementById("password").addEventListener("input", function () {
+    var password = document.getElementById("password").value;
+    var hasUpperCase = /[A-Z]/.test(password);
+    var hasLowerCase = /[a-z]/.test(password);
+    var hasSymbol = /[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/.test(password);
+    var hasNumber = /\d/.test(password);
+    var isLengthValid = password.length >= 8;
+    document.getElementById("symbol").className = hasSymbol
+      ? "fa fa-check"
+      : "fa fa-times";
+    document.getElementById("uppercase").className = hasUpperCase
+      ? "fa fa-check"
+      : "fa fa-times";
+    document.getElementById("lowercase").className = hasLowerCase
+      ? "fa fa-check"
+      : "fa fa-times";
+    document.getElementById("numnercase").className = hasNumber
+      ? "fa fa-check"
+      : "fa fa-times";
+    document.getElementById("minchar").className = isLengthValid
+      ? "fa fa-check"
+      : "fa fa-times";
+  });
   document
     .getElementById("retypePassword")
     .addEventListener("input", function () {
@@ -198,8 +235,7 @@
           isLengthValid
         )
       ) {
-        messageElement.textContent =
-          "* Password doesn't match requirement";
+        messageElement.textContent = "* Password doesn't match requirement";
         messageElement.style.color = "red";
       } else {
         var retypePassword = this.value;
@@ -214,12 +250,12 @@
       }
     });
 
-    $(document).ready(function() {
+  $(document).ready(function () {
     var successModalValue = "{{ success_modal }}";
     var successModalLabel = "{{ successModalLabel }}";
     var successModalSubLabel = "{{ successModalSubLabel }}";
     if (successModalValue === "True") {
-      console.log('Showing modal');
+      console.log("Showing modal");
       var modal = $("#successModal");
       modal.find("#successModalLabel").text(successModalLabel);
       modal.find("#successModalSubLabel").text(successModalSubLabel);
@@ -228,14 +264,25 @@
   });
 </script>
 
-
 <!-- Modal for Success Message -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+<div
+  class="modal fade"
+  id="successModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="successModalLabel"
+  aria-hidden="true"
+>
   <div class="modal-dialog" role="document">
     <div class="modal-content bg-success">
       <div class="modal-header">
         <h5 class="modal-title" id="successModalLabel"></h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -243,7 +290,9 @@
         <h3 class="modal-title" id="successModalSubLabel"></h3>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
       </div>
     </div>
   </div>
